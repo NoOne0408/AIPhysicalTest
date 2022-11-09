@@ -55,6 +55,9 @@ public class ObliquePullUps {
     Point RElbow,LElbow,RWrist,LWrist;
     Point RHeel,LHeel,RIndex,LIndex;
 
+    float tempRShoulderY,tempLShoulderY;
+    float tempRHipY,tempLHipY;
+
     public void recover(){
         //起始、计数标记位
         start_flag=false;
@@ -128,7 +131,7 @@ public class ObliquePullUps {
             if (isReady){
                 poseTest.initFrame(LWrist, LElbow, LShoulder, LAnkle, LHeel,LIndex,
                         RWrist, RElbow, RShoulder, RAnkle,RHeel,RIndex);
-                PoseTest.keyMessage="已做好准备！";
+                PoseTest.keyMessage="已做好准备！"+n;
             }
             else{
                 PoseTest.keyMessage="请调整姿势！" ;
@@ -244,17 +247,20 @@ public class ObliquePullUps {
         }
         else System.out.println("双脚固定");
 
+
+        //判断在当前准备与完成间隙，是否有夹角过大的情况，如果有则不予计数
+        max_angle_flag=isBodyCorrect();
+        if (bow_count>8||!max_angle_flag)PoseTest.keyMessage="请勿塌腰挺腹!!!!!";
+    }
+
+    private boolean isBodyCorrect(){
         //判断身体是否挺直（未塌腰挺腹）
         //计算身体与腿部的夹角，并且更新最大值
         float angle_left = utils.calAngle(LShoulder,LHip,LHip,LKeen);
         float angle_right = utils.calAngle(RShoulder,RHip,RHip,RKeen);
         if (angle_left>this.maxBodyLegAngleLeft)this.maxBodyLegAngleLeft=angle_left;
         if (angle_right>this.maxBodyLegAngleRight)this.maxBodyLegAngleRight=angle_right;
-        //判断在当前准备与完成间隙，是否有夹角过大的情况，如果有则不予计数
-        max_angle_flag=!(this.maxBodyLegAngleRight>20 && this.maxBodyLegAngleLeft>20);
-        if (bow_count>5||!max_angle_flag)PoseTest.keyMessage="请勿塌腰挺腹!!!!!";
-        jawMessage();
-
+        return !(this.maxBodyLegAngleRight>18 && this.maxBodyLegAngleLeft>18);
     }
 
     private void judgeStartPose(){
@@ -291,6 +297,12 @@ public class ObliquePullUps {
         System.out.println("判断条件 max_angle_flag && condition_satisfy && finish_correct &&  finish_time:"+
                 max_angle_flag+" "+condition_satisfy+" "+ finish_correct +" "+  finish_time);
 
+        //下巴未过杠检测条件
+        //flag1:不要在刚刚计数成功后至下次准备动作开始之间 提示下巴未过杠,提示条件：start_time=!max_time,
+        //flag2:在连续几次未计数成功但是满足开始动作 提示下巴未过杠,提示条件：start_flag=1,count_time<start_time
+        boolean flag1=start_time!=max_time;
+        boolean flag2=start_flag&&count_time<start_time;
+
         //判断是否计数,满足上述四个条件
         if(max_angle_flag && condition_satisfy &&  finish_correct &&  finish_time){
             count+=1;
@@ -298,15 +310,25 @@ public class ObliquePullUps {
             PoseTest.keyMessage="计数+1 ";
             setCount_flag_count();
         }
+        else if (flag1||flag2)
+            jawMessage();
 
 
     }
 
     private void jawMessage(){
-        boolean angle_flag=poseTest.isJawMessage(LShoulder,LAnkle,RShoulder, RAnkle);
-        if(bow_flag && start_flag && angle_flag){
+        boolean angle_flag=poseTest.isJawMessage(LShoulder,LAnkle,LHip,RShoulder, RAnkle,RHip,tempLShoulderY,tempRShoulderY,tempLHipY,tempRHipY);
+        if(start_flag && angle_flag){
             PoseTest.keyMessage="下巴未过杠";
         }
+        System.out.println("更新数据");
+
+        tempLShoulderY=LShoulder.Y;
+        tempRShoulderY=RShoulder.Y;
+
+        tempLHipY=LHip.Y;
+        tempRHipY=RHip.Y;
+
     }
 
 }

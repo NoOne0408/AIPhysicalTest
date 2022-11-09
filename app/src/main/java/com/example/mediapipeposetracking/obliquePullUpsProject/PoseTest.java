@@ -230,7 +230,9 @@ public class PoseTest {
     }
 
     //判断是否需要提示下巴不过杠
-    public boolean isJawMessage(Point LShoulder,Point LAnkle, Point RShoulder,Point RAnkle){
+    public boolean isJawMessage(Point LShoulder,Point LAnkle,Point LHip, Point RShoulder,Point RAnkle,Point RHip,
+                                float tempLShoulderY,float tempRShoulderY,float tempLHipY,float tempRHipY
+    ){
         //身体地面角度
         float angle_body_floor_left = BodyModule.body_floor_angle(LShoulder, LAnkle);
         float angle_body_floor_right = BodyModule.body_floor_angle(RShoulder, RAnkle);
@@ -238,7 +240,30 @@ public class PoseTest {
         float leftAngleThreshold=(this.angle_wrist_ankle_left+this.angle_body_floor_left)/2;
         float rightAngleThreshold=(this.angle_wrist_ankle_right+this.angle_body_floor_right)/2;
 
-        return angle_body_floor_left>=leftAngleThreshold ||angle_body_floor_right>=rightAngleThreshold;
+        boolean flag1=angle_body_floor_left>=leftAngleThreshold ||angle_body_floor_right>=rightAngleThreshold;
+
+        float sub_h_shoulder_left=LShoulder.Y-tempLShoulderY;
+        float sub_h_shoulder_right=RShoulder.Y-tempRShoulderY;
+
+        float sub_h_hip_left=LHip.Y-tempLHipY;
+        float sub_h_hip_right=RHip.Y-tempRHipY;
+
+        boolean sub_flag1=sub_h_shoulder_left>0||sub_h_shoulder_right>0;
+        boolean sub_flag2=sub_h_hip_left>0||sub_h_hip_right>0;
+
+        float dis_wrist_shoulder_left=utils.cal_distance(LWristPoint,LShoulder);
+        float dis_wrist_shoulder_right=utils.cal_distance(RWristPoint,RShoulder);
+
+
+        if (sub_flag1&&sub_flag2){
+//            PoseTest.keyMessage="下降中";
+            if (flag1 &&(dis_wrist_shoulder_left>200||dis_wrist_shoulder_right>200)){
+                return true;
+            }
+        }
+
+
+        return false;
     }
 
     //判断是否达到准备判断基本条件/开始条件
