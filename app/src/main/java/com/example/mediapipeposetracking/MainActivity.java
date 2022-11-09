@@ -288,14 +288,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // 在其中写入响应方法
-                System.out.println("斜身引体项目检测");
-                button_oblique_pullups.setText("斜身引体检测");
+                System.out.println("斜身引体项目");
+                button_oblique_pullups.setText("斜身引体");
                 project_name = "obliquePullUps";
                 onResumeTest();
                 checkCamera();
                 poseDetection("obliquePullUps");
-//                Intent intent=new Intent(context, ObliquePullUpsActivity.class);
-//                startActivity(intent);
             }
         });
 
@@ -304,8 +302,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // 在其中写入响应方法
-                System.out.println("引体向上项目检测");
-                button_pullups.setText("引体向上检测");
+                System.out.println("引体向上项目");
+                button_pullups.setText("引体向上");
                 project_name = "pullUps";
                 onResumeTest();
                 checkCamera();
@@ -321,8 +319,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // 在其中写入响应方法
-                System.out.println("双杠臂屈伸项目检测");
-                button_doublebarflexion.setText("双杠臂屈伸检测");
+                System.out.println("双杠臂屈伸项目");
+                button_doublebarflexion.setText("双杠臂屈伸");
                 project_name = "doubleBarBuckling";
                 onResumeTest();
                 checkCamera();
