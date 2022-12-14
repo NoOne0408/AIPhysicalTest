@@ -1,6 +1,8 @@
 package com.example.mediapipeposetracking.obliquePullUpsProject;
 
 
+import com.example.mediapipeposetracking.Point;
+
 public class PoseTest {
     private static float threshold_small;//胳膊小阈值
     private static int threshold_arm_angle_sub;//胳膊弯曲角度误差值
@@ -34,8 +36,8 @@ public class PoseTest {
     
 
     //用于更新胳膊夹角的值，采用前n次最小的角度
-    public void updateArmAngle(Point LWrist,Point LElbow,Point LShoulder,
-                               Point RWrist,Point RElbow,Point RShoulder){
+    public void updateArmAngle(Point LWrist, Point LElbow, Point LShoulder,
+                               Point RWrist, Point RElbow, Point RShoulder){
         //获取初始胳膊角度
         float LArmAngleNew=utils.calAngle(LWrist, LElbow, LElbow, LShoulder);
         float RArmAngleNew=utils.calAngle(RWrist, RElbow, RElbow, RShoulder);

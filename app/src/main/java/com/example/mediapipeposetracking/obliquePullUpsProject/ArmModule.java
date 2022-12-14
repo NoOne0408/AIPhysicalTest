@@ -1,5 +1,6 @@
 package com.example.mediapipeposetracking.obliquePullUpsProject;
 
+import com.example.mediapipeposetracking.Point;
 import com.google.mediapipe.formats.proto.LandmarkProto;
 
 public class ArmModule {

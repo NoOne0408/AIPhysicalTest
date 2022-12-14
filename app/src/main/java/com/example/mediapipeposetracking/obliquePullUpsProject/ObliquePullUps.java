@@ -1,9 +1,9 @@
 package com.example.mediapipeposetracking.obliquePullUpsProject;
 import android.os.Message;
 import com.example.mediapipeposetracking.MainActivity;
-import java.util.TimerTask;
+import com.example.mediapipeposetracking.Point;
 
-import javax.xml.parsers.SAXParser;
+import java.util.TimerTask;
 
 public class ObliquePullUps {
 

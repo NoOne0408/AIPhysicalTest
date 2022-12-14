@@ -1,5 +1,7 @@
 package com.example.mediapipeposetracking.obliquePullUpsProject;
 
+import com.example.mediapipeposetracking.Point;
+
 public class utils {
     // 由于输出坐标与直角坐标轴不符合，对纵坐标进行简单转换，用于后续数学计算
     public static Point coordChange(Point keypoint, float yLength){

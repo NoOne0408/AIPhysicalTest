@@ -1,6 +1,5 @@
 package com.example.mediapipeposetracking;
 
-import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -25,9 +24,9 @@ import com.example.mediapipeposetracking.obliquePullUpsProject.BodyModule;
 import com.example.mediapipeposetracking.obliquePullUpsProject.FootModule;
 import com.example.mediapipeposetracking.obliquePullUpsProject.ObliquePullUps;
 //import com.example.mediapipeposetracking.obliquePullUpsProject.ObliquePullUpsActivity;
-import com.example.mediapipeposetracking.obliquePullUpsProject.Point;
 import com.example.mediapipeposetracking.obliquePullUpsProject.PoseTest;
 import com.example.mediapipeposetracking.pullUpsProject.PullUps;
+import com.example.mediapipeposetracking.ropeSkippingProject.RopeSkipping;
 import com.google.mediapipe.components.CameraHelper;
 import com.google.mediapipe.components.CameraXPreviewHelper;
 import com.google.mediapipe.components.ExternalTextureConverter;
@@ -89,9 +88,10 @@ public class MainActivity extends AppCompatActivity {
     public static CameraXPreviewHelper cameraHelper;
 
 
-    ObliquePullUps obliquePullUps = new ObliquePullUps();
-    doubleBarflexion _doubleBarflexion = new doubleBarflexion();
-    PullUps pullUps=new PullUps();
+    ObliquePullUps obliquePullUps;
+    doubleBarflexion _doubleBarflexion;
+    PullUps pullUps;
+    RopeSkipping ropeSkipping;
 
     Point RShoulder, LShoulder, RHip, LHip, RKeen, LKeen, RAnkle, LAnkle, Nose;
     Point RElbow, LElbow, RWrist, LWrist;
@@ -113,8 +113,17 @@ public class MainActivity extends AppCompatActivity {
     public static TextView tvCount;
     //用于显示建议动作的控件
     public static TextView tvAction;
+    //用于显示时间的控件
+    public static TextView tvTime;
     //利用 Handler来发送消息和处理消息，更改 UI上的内容
+    public static TextView tvTimeText;
+
     public static String project_name;
+
+    public boolean rope_start_flag=false;
+    public long start_time;
+    public int i=0;
+
 
     public static Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -133,6 +142,12 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.tvCount.setText(PullUps.count+"");
                 MainActivity.tvAction.setText(PullUps.keyMessage);
             }
+            if (project_name.equals("ropeSkipping")){
+                String out = RopeSkipping.count+"";
+                MainActivity.tvCount.setText(out);
+                MainActivity.tvAction.setText(com.example.mediapipeposetracking.ropeSkippingProject.PoseTest.keyMessage);
+                MainActivity.tvTime.setText(RopeSkipping.time+" ");
+            }
             super.handleMessage(msg);
 
         }
@@ -140,9 +155,9 @@ public class MainActivity extends AppCompatActivity {
     public static Timer timer = new Timer();
 
 
+
+
     public void poseDetection(String project) {
-        tvCount = findViewById(R.id.count_result);
-        tvAction = findViewById(R.id.action_advice);
 
         //显示数据结果
         findViewById(R.id.rLayoutShow).setVisibility(View.VISIBLE);
@@ -228,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
                         com.example.mediapipeposetracking.doubleBarflexionProject.Point RIndex_doubleBarflexion = feet_points_doubleBarflexion[2];
                         com.example.mediapipeposetracking.doubleBarflexionProject.Point LIndex_doubleBarflexion = feet_points_doubleBarflexion[3];
 
+                        //跳绳
 
 
                         //按照自己的项目调用方式调用
@@ -242,13 +258,37 @@ public class MainActivity extends AppCompatActivity {
                             int width=previewDisplayView.getWidth();
                             int height=previewDisplayView.getHeight();
                             pullUps.startDetection(landmarks,width,height);
-                        } else if (project.equals("SitUps")) {
-                            //仰卧起坐动作检测开始
                         } else if (project.equals("doubleBarBuckling")) {
                             //双杠臂屈伸项目检测开始
                             _doubleBarflexion.updatePoints(RShoulder_doubleBarflexion, LShoulder_doubleBarflexion, RHip_doubleBarflexion, LHip_doubleBarflexion, RKeen_doubleBarflexion, LKeen_doubleBarflexion, RAnkle_doubleBarflexion, LAnkle_doubleBarflexion, Nose_doubleBarflexion,
                                     RElbow_doubleBarflexion, LElbow_doubleBarflexion, RWrist_doubleBarflexion, LWrist_doubleBarflexion, RHeel_doubleBarflexion, LHeel_doubleBarflexion, RIndex_doubleBarflexion, LIndex_doubleBarflexion);
                             _doubleBarflexion.startDetection();
+                        } else if (project.equals("ropeSkipping")) {
+                            //跳绳动作检测在点击按钮后开始
+                            System.out.println("y坐标："+RShoulder.Y);
+
+                            if (rope_start_flag){
+                                 //在准备好时再开始计时
+                                if (!RopeSkipping.ready){
+                                    start_time=System.currentTimeMillis();
+                                    RopeSkipping.ready=true;
+                                    RopeSkipping.mean=RShoulder.Y;
+                                }
+
+                                System.out.println("开始时间："+start_time);
+                                i++;
+                                ropeSkipping.updatePoints(RShoulder,LShoulder,RHip,LHip,Nose, RElbow,LElbow,RWrist,LWrist);
+                                ropeSkipping.startDetection(start_time);
+                                System.out.println("y num："+RopeSkipping.RShoulderList.size());
+                                if (RopeSkipping.time==60){
+                                    System.out.println("time："+RopeSkipping.time);
+                                    System.out.println("检测帧数："+i);
+                                    RopeSkipping.count=i;
+                                    converter.close();
+                                }
+
+                            }
+
                         }
 
 
@@ -259,12 +299,17 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    public void updateShowCompnent(){
+        tvCount.setText("");
+        tvAction.setText("");
+        tvTime.setText("");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getContentViewLayoutResId());
         onResumeTest();
-
 
         try {
             applicationInfo =
@@ -273,26 +318,37 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "Cannot find application info: " + e);
         }
 
+        tvCount = findViewById(R.id.count_result);
+        tvAction = findViewById(R.id.action_advice);
+        tvTime = findViewById(R.id.time_pass);
+        tvTimeText=findViewById(R.id.time_text);
+
+
         previewDisplayView = new SurfaceView(this);
         setupPreviewDisplayView();
 
         //用于选择项目的按钮控件
         Button button_oblique_pullups = findViewById(R.id.button_1);
         Button button_pullups = findViewById(R.id.button_2);
-//        Button button3 = findViewById(R.id.button_3);
-        Button button_doublebarflexion = findViewById(R.id.button_4);
-
+        Button button_doublebarflexion = findViewById(R.id.button_3);
+        Button button_rope_skipping = findViewById(R.id.button_4_1);
+        Button button_rope_skipping_front=findViewById(R.id.button_4_2);
         Button button_close = findViewById(R.id.button_close);
+        Button button_start=findViewById(R.id.button_start);
+        Button button_result=findViewById(R.id.button_result);
+
 
         button_oblique_pullups.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // 在其中写入响应方法
+                updateShowCompnent();
                 System.out.println("斜身引体项目");
                 button_oblique_pullups.setText("斜身引体");
                 project_name = "obliquePullUps";
                 onResumeTest();
-                checkCamera();
+                checkCamera(0);
+                obliquePullUps = new ObliquePullUps();
                 poseDetection("obliquePullUps");
             }
         });
@@ -302,29 +358,65 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // 在其中写入响应方法
+                updateShowCompnent();
                 System.out.println("引体向上项目");
                 button_pullups.setText("引体向上");
                 project_name = "pullUps";
                 onResumeTest();
-                checkCamera();
+                checkCamera(0);
+                pullUps=new PullUps();
                 poseDetection("pullUps");
             }
         });
-
-
-
 
 
         button_doublebarflexion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // 在其中写入响应方法
+                updateShowCompnent();
                 System.out.println("双杠臂屈伸项目");
                 button_doublebarflexion.setText("双杠臂屈伸");
                 project_name = "doubleBarBuckling";
                 onResumeTest();
-                checkCamera();
+                checkCamera(0);
+                _doubleBarflexion = new doubleBarflexion();
                 poseDetection("doubleBarBuckling");
+            }
+        });
+
+        button_rope_skipping.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateShowCompnent();
+                System.out.println("1分钟跳绳项目");
+                button_rope_skipping.setText("1分钟跳绳(后置)");
+                project_name="ropeSkipping";
+                tvTime.setVisibility(View.VISIBLE);
+                tvTimeText.setVisibility(View.VISIBLE);
+                button_result.setVisibility(View.VISIBLE);
+                onResumeTest();
+                checkCamera(0);
+                ropeSkipping=new RopeSkipping();
+                poseDetection("ropeSkipping");
+
+            }
+        });
+
+        button_rope_skipping_front.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateShowCompnent();
+                System.out.println("1分钟跳绳项目");
+                button_rope_skipping.setText("1分钟跳绳(前置)");
+                project_name="ropeSkipping";
+                tvTime.setVisibility(View.VISIBLE);
+                tvTimeText.setVisibility(View.VISIBLE);
+                button_result.setVisibility(View.VISIBLE);
+                onResumeTest();
+                checkCamera(1);
+                ropeSkipping=new RopeSkipping();
+                poseDetection("ropeSkipping");
             }
         });
 
@@ -332,32 +424,64 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 button_close.setText("结束测试");
-                tvCount.setText("");
-                tvAction.setText("");
-
-                findViewById(R.id.rLayoutShow).setVisibility(View.INVISIBLE);
-                findViewById(R.id.rLayoutButton).setVisibility(View.VISIBLE);
-
-                converter.close();
-
-                // Hide preview display until we re-open the camera again.
-                previewDisplayView.setVisibility(View.GONE);
-
-                //重新刷新内容
-                if (project_name.equals("obliquePullUps")) {
-                    obliquePullUps.recover();
-
-                }
-                if (project_name.equals("doubleBarBuckling")) {
-                    _doubleBarflexion.recover();
-                }
-                if (project_name.equals("pullUps")) {
-                    pullUps.recover();
-                }
-
+                closeDetection();
             }
         });
 
+        button_start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                button_start.setText("正式开始");
+                rope_start_flag=true;
+            }
+        });
+
+        button_result.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                button_result.setText("结果");
+                System.out.println("jjjjjjjjjjjj");
+                for (int i=0;i<RopeSkipping.RShoulderList.size();i++){
+                    float y=RopeSkipping.RShoulderList.get(i);
+                    System.out.print(y+",");
+                }
+            }
+        });
+
+
+    }
+
+    protected void closeDetection(){
+
+
+        findViewById(R.id.rLayoutShow).setVisibility(View.INVISIBLE);
+        findViewById(R.id.rLayoutButton).setVisibility(View.VISIBLE);
+
+
+        // Hide preview display until we re-open the camera again.
+        previewDisplayView.setVisibility(View.GONE);
+
+        converter.close();
+
+        //重新刷新内容
+        if (project_name.equals("obliquePullUps")) {
+            obliquePullUps.recover();
+
+        }
+        if (project_name.equals("doubleBarBuckling")) {
+            _doubleBarflexion.recover();
+        }
+        if (project_name.equals("pullUps")) {
+            pullUps.recover();
+        }
+        if (project_name.equals("ropeSkipping")){
+            ropeSkipping.recover();
+            rope_start_flag=false;
+            RopeSkipping.ready=false;
+            i=0;
+            tvTime.setVisibility(View.INVISIBLE);
+            tvTimeText.setVisibility(View.INVISIBLE);
+        }
 
     }
 
@@ -402,9 +526,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //检查相机权限
-    public void checkCamera(){
+    public void checkCamera(int cameraConfig){
         if (PermissionHelper.cameraPermissionsGranted(MainActivity.this)) {
-            startCamera();
+            startCamera(cameraConfig);
         }
 
     }
@@ -436,13 +560,16 @@ public class MainActivity extends AppCompatActivity {
         return null; // No preference and let the camera (helper) decide.
     }
 
-    public void startCamera() {
+    public void startCamera(int cameraConfig) {
         cameraHelper = new CameraXPreviewHelper();
         cameraHelper.setOnCameraStartedListener(
                 surfaceTexture -> {
                     onCameraStarted(surfaceTexture);
                 });
+        //后置摄像头
         CameraHelper.CameraFacing cameraFacing = CAMERA_FACING;
+        //前置摄像头
+        if (cameraConfig==1) cameraFacing = CameraHelper.CameraFacing.FRONT;
         cameraHelper.startCamera(
                 this, cameraFacing, /*unusedSurfaceTexture=*/ null, cameraTargetResolution());
 

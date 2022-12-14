@@ -1,5 +1,5 @@
 package com.example.mediapipeposetracking.obliquePullUpsProject;
-import com.example.mediapipeposetracking.MainActivity;
+import com.example.mediapipeposetracking.Point;
 import com.google.mediapipe.formats.proto.LandmarkProto;
 
 
